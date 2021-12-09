@@ -1,0 +1,6 @@
+[submodule "include/srrg_hbst"]
+	path = include/srrg_hbst
+	url = https://gitlab.com/srrg-software/srrg_hbst
+[submodule "include/pybind11"]
+	path = include/pybind11
+	url = https://github.com/pybind/pybind11
