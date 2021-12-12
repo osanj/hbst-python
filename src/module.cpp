@@ -94,6 +94,9 @@ private:
         if (descriptors.ndim() != 2) {
             throw std::runtime_error("Incompatible buffer shape for descriptors, expected 2d array");
         }
+        if (descriptorIds.shape(0) != descriptors.shape(0)) {
+            throw std::runtime_error("Inconsistent buffer shapes, descriptor id count and descriptor count does not match");
+        }
         uint32_t expectedByteCount = getDescriptorSizeInBytes();
         if (!pad && descriptors.shape(1) != expectedByteCount) {
             throw std::runtime_error("Incompatible buffer shape for descriptors, dimension 0: number of descriptors, dimension 1: " + std::to_string(expectedByteCount));
@@ -105,7 +108,7 @@ private:
         MatchableVector matchables(descriptorIds.shape(0));
         for (uint64_t i = 0; i < descriptorIds.shape(0); ++i) {
             Descriptor d = buildDescriptor(descriptors.data(i));
-            matchables[i] = new Matchable(descriptorIds.at(i), d, imageId); // TODO: turn uint8 array row into a bitset
+            matchables[i] = new Matchable(descriptorIds.at(i), d, imageId);
         }
 
         return matchables;
