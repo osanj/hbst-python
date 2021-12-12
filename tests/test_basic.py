@@ -19,7 +19,7 @@ def test_basic_tree_usage(tree_cls):
     n1 = 3
     n2 = 5
     train_desc = build_descriptors(n1 + n2, desc_size)
-    train_idx = np.arange(len(train_desc.shape), dtype=np.uint64)
+    train_idx = np.arange(len(train_desc), dtype=np.uint64)
     s1 = slice(0, n1)
     s2 = slice(n1, n1 + n2)
 
