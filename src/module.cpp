@@ -25,6 +25,18 @@ public:
         BinaryTree::add(matchables, trainMode);
     }
 
+    static uint32_t getDescriptorSizeInBits() {
+        return Matchable::descriptor_size_bits;
+    }
+
+    static uint32_t getDescriptorOverflowBits() {
+        return Matchable::descriptor_size_bits_overflow;
+    }
+
+    static uint32_t getDescriptorSizeInBytes() {
+        return ceil(getDescriptorSizeInBits() / 8.);
+    }
+
     // std::vector<_BinaryMatchable256> match(py::array_t<uint8_t> queryDescriptors, uint32_t maximumDistance, bool lazy) {
 
     //     if (lazy) {
@@ -42,8 +54,11 @@ public:
             .def("clear", &cls::clear)
             .def("read", &cls::read)
             .def("write", &cls::write)
-            .def("numberOfMatchablesUncompressed", &cls::numberOfMatchablesUncompressed)
-            .def("numberOfMatchablesCompressed", &cls::numberOfMatchablesCompressed)
+            .def_static("get_desc_size_in_bits", &cls::getDescriptorSizeInBits)
+            .def_static("get_desc_overflow_bits", &cls::getDescriptorOverflowBits)
+            .def_static("get_desc_size_in_bytes", &cls::getDescriptorSizeInBytes)
+            // .def("numberOfMatchablesUncompressed", &cls::numberOfMatchablesUncompressed)
+            // .def("numberOfMatchablesCompressed", &cls::numberOfMatchablesCompressed)
             .def("size", &cls::size);
     }
 
@@ -51,8 +66,10 @@ private:
     static Descriptor buildDescriptor(const u_char* descriptor) {
         // see getDescriptor for SRRG_HBST_HAS_OPENCV in binary_matchable.hpp
         Descriptor binaryDescriptor; // padding is done implicitely, instantiation zeros all bits
+        uint32_t overflow = getDescriptorOverflowBits();
+        uint32_t sizeInBytes = Matchable::raw_descriptor_size_bytes; // not using getDescriptorSizeInBytes because original library does not use ceil
 
-        for (uint64_t byteIndex = 0; byteIndex < Matchable::raw_descriptor_size_bytes; ++byteIndex) {
+        for (uint64_t byteIndex = 0; byteIndex < sizeInBytes; ++byteIndex) {
             const uint32_t bitIndexStart = byteIndex * 8;
             const std::bitset<8> descriptorByte(descriptor[byteIndex]);
             for (uint8_t v = 0; v < 8; ++v) {
@@ -61,10 +78,10 @@ private:
         }
 
         // in case the last byte is not fully used
-        if (Matchable::descriptor_size_bits_overflow > 0) {
-            const std::bitset<8> descriptorByte(descriptor[Matchable::raw_descriptor_size_bytes]);
-            for (uint32_t v = 0; v < Matchable::descriptor_size_bits_overflow; ++v) {
-                binaryDescriptor[Matchable::descriptor_size_bits_in_bytes + v] = descriptorByte[8 - Matchable::descriptor_size_bits_overflow + v];
+        if (overflow > 0) {
+            const std::bitset<8> descriptorByte(descriptor[sizeInBytes]);
+            for (uint32_t v = 0; v < overflow; ++v) {
+                binaryDescriptor[Matchable::descriptor_size_bits_in_bytes + v] = descriptorByte[8 - overflow + v];
             }
         }
         return binaryDescriptor;
@@ -77,7 +94,7 @@ private:
         if (descriptors.ndim() != 2) {
             throw std::runtime_error("Incompatible buffer shape for descriptors, expected 2d array");
         }
-        uint32_t expectedByteCount = ceil(Matchable::descriptor_size_bits / 8.);
+        uint32_t expectedByteCount = getDescriptorSizeInBytes();
         if (!pad && descriptors.shape(1) != expectedByteCount) {
             throw std::runtime_error("Incompatible buffer shape for descriptors, dimension 0: number of descriptors, dimension 1: " + std::to_string(expectedByteCount));
         }
