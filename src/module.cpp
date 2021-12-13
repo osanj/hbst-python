@@ -1,8 +1,10 @@
 #include <pybind11/pybind11.h>
+#include <pybind11/stl.h>
 #include <pybind11/numpy.h>
 #include <srrg_hbst/types/binary_matchable.hpp>
 #include <srrg_hbst/types/binary_node.hpp>
 #include <srrg_hbst/types/binary_tree.hpp>
+#include <algorithm>
 #include <math.h>
 
 namespace py = pybind11;
@@ -16,13 +18,17 @@ class BinaryTreeAdapter : public srrg_hbst::BinaryTree<BinaryNodeType_> {
 public:
     using BinaryTree = srrg_hbst::BinaryTree<BinaryNodeType_>;
     using ObjectType = typename BinaryTree::ObjectType;
+    using Match = typename BinaryTree::Match;
     using Matchable = typename BinaryTree::Matchable;
     using MatchableVector = typename BinaryTree::MatchableVector;
+    using MatchVector = typename BinaryTree::MatchVector;
     using Descriptor = typename BinaryTree::Descriptor;
 
-    void add(uint16_t imageId, py::array_t<ObjectType> descriptorIds, py::array_t<uint8_t> descriptors, srrg_hbst::SplittingStrategy trainMode, bool padDescriptorsIfRequired) {
-        MatchableVector matchables = std::move(buildMatchableVector(imageId, descriptorIds, descriptors, padDescriptorsIfRequired));
-        BinaryTree::add(matchables, trainMode);
+    BinaryTreeAdapter(bool _padDescriptorsIfRequired) : padDescriptorsIfRequired(_padDescriptorsIfRequired) {}
+
+    void add(uint16_t imageId, py::array_t<ObjectType> descriptorIds, py::array_t<uint8_t> descriptors) {
+        MatchableVector matchables = std::move(buildMatchableVector(imageId, descriptorIds, descriptors));
+        BinaryTree::add(matchables, srrg_hbst::SplittingStrategy::DoNothing);
     }
 
     static uint32_t getDescriptorSizeInBits() {
@@ -37,32 +43,82 @@ public:
         return ceil(getDescriptorSizeInBits() / 8.);
     }
 
-    // std::vector<_BinaryMatchable256> match(py::array_t<uint8_t> queryDescriptors, uint32_t maximumDistance, bool lazy) {
+    MatchVector match(py::array_t<ObjectType> queryDescriptorIds, py::array_t<uint8_t> queryDescriptors, uint32_t maximumDistance, bool lazy) {
+        MatchVector matches;
+        MatchableVector query = buildMatchableVector(0, queryDescriptorIds, queryDescriptors);
 
-    //     if (lazy) {
-    //         matchLazy(, maximumDistance);
-    //     }
-    // }
+        if (lazy) {
+            BinaryTree::matchLazy(query, matches, maximumDistance);
+        } else {
+            BinaryTree::match(query, matches, maximumDistance);
+        }
 
+        return matches;
+    }
+
+    static std::pair<std::unordered_map<ObjectType, MatchVector>, std::vector<ObjectType>> partitionMatches(MatchVector& matches) {
+        std::unordered_map<ObjectType, MatchVector> partitions;
+
+        for (const auto& match : matches) {
+            for (const auto& ref : match.matchable_references) {
+                for (const auto& kvPair : ref->objects) {
+                    ObjectType key = kvPair.first;
+                    if (partitions.find(key) == partitions.end()) {
+                        partitions[key] = MatchVector();
+                    }
+                    partitions.at(key).push_back(match);
+                }
+            }
+        }
+
+        std::vector<ObjectType> sortedImageIds;
+        sortedImageIds.reserve(partitions.size());
+        for (const auto& kvPair : partitions) {
+            sortedImageIds.push_back(kvPair.first);
+        }
+
+        std::sort(sortedImageIds.begin(), sortedImageIds.end(), [&](const ObjectType &a, const ObjectType &b) {
+            return partitions.at(a).size() > partitions.at(b).size();
+        });
+
+        return std::make_pair(partitions, sortedImageIds);
+    }
 
     static void bind(pybind11::module_& m, std::string name) {
-        using cls = BinaryTreeAdapter<BinaryNodeType_>;
-        py::class_<cls>(m, name.c_str())
-            .def(py::init<>())
-            .def("add", &cls::add)
-            .def("train", &cls::train)
-            .def("clear", &cls::clear)
-            .def("read", &cls::read)
-            .def("write", &cls::write)
-            .def_static("get_desc_size_in_bits", &cls::getDescriptorSizeInBits)
-            .def_static("get_desc_overflow_bits", &cls::getDescriptorOverflowBits)
-            .def_static("get_desc_size_in_bytes", &cls::getDescriptorSizeInBytes)
-            // .def("numberOfMatchablesUncompressed", &cls::numberOfMatchablesUncompressed)
-            // .def("numberOfMatchablesCompressed", &cls::numberOfMatchablesCompressed)
-            .def("size", &cls::size);
+        using clsTree = BinaryTreeAdapter<BinaryNodeType_>;
+        auto tree = py::class_<clsTree>(m, name.c_str());
+        tree.def(py::init<bool>(), py::arg("pad_descriptors_if_required") = false);
+        tree.def("add", &clsTree::add, py::arg("image_id"), py::arg("descriptor_ids"), py::arg("descriptors"));
+        tree.def("train", &clsTree::train, py::arg("mode") = srrg_hbst::SplittingStrategy::SplitEven);
+        tree.def("match", &clsTree::match, py::arg("query_descriptor_ids"), py::arg("query_descriptors"), py::arg("max_distance") = 25, py::arg("lazy") = false);
+        tree.def("clear", &clsTree::clear);
+        tree.def("read", &clsTree::read, py::arg("file_path"));
+        tree.def("write", &clsTree::write, py::arg("file_path"));
+        tree.def_static("partition_matches", &clsTree::partitionMatches, py::arg("matches"));
+        tree.def_static("get_desc_size_in_bits", &clsTree::getDescriptorSizeInBits);
+        tree.def_static("get_desc_overflow_bits", &clsTree::getDescriptorOverflowBits);
+        tree.def_static("get_desc_size_in_bytes", &clsTree::getDescriptorSizeInBytes);
+        tree.def("size", &clsTree::size);
+
+        using clsMatchable = BinaryTreeAdapter<BinaryNodeType_>::Matchable;
+        auto matchable = py::class_<clsMatchable>(tree, "Matchable");
+        // matchable.def_property_readonly("descriptor", [](const clsMatchable &m) { return m.descriptor; }; // TODO: convert to numpy array
+        matchable.def_readonly("descriptor_id_by_image_id", &clsMatchable::objects); // check memory situation
+
+        using clsMatch = BinaryTreeAdapter<BinaryNodeType_>::Match;
+        auto match = py::class_<clsMatch>(tree, "Match");
+        match.def_readonly("distance", &clsMatch::distance);
+        match.def_readonly("query_descriptor", &clsMatch::matchable_query);
+        match.def_readonly("query_descriptor_id", &clsMatch::object_query);
+        match.def_readonly("match_ids", &clsMatch::object_references);
+        match.def_readonly("match_refs", &clsMatch::matchable_references);
+        match.def_property_readonly("first_match_id", [](const clsMatch &m) { return m.object_references.front(); });
     }
 
 private:
+    bool padDescriptorsIfRequired;
+
+
     static Descriptor buildDescriptor(const u_char* descriptor) {
         // see getDescriptor for SRRG_HBST_HAS_OPENCV in binary_matchable.hpp
         Descriptor binaryDescriptor; // padding is done implicitely, instantiation zeros all bits
@@ -87,7 +143,7 @@ private:
         return binaryDescriptor;
     }
 
-    static MatchableVector buildMatchableVector(uint64_t imageId, py::array_t<ObjectType>& descriptorIds, py::array_t<uint8_t>& descriptors, bool pad) {
+    MatchableVector buildMatchableVector(uint64_t imageId, py::array_t<ObjectType>& descriptorIds, py::array_t<uint8_t>& descriptors) {
         if (descriptorIds.ndim() != 1) {
             throw std::runtime_error("Incompatible buffer shape for descriptor ids, expected 1d array");
         }
@@ -98,10 +154,10 @@ private:
             throw std::runtime_error("Inconsistent buffer shapes, descriptor id count and descriptor count does not match");
         }
         uint32_t expectedByteCount = getDescriptorSizeInBytes();
-        if (!pad && descriptors.shape(1) != expectedByteCount) {
+        if (!padDescriptorsIfRequired && descriptors.shape(1) != expectedByteCount) {
             throw std::runtime_error("Incompatible buffer shape for descriptors, dimension 0: number of descriptors, dimension 1: " + std::to_string(expectedByteCount));
         }
-        if (pad && descriptors.shape(1) > expectedByteCount) {
+        if (padDescriptorsIfRequired && descriptors.shape(1) > expectedByteCount) {
             throw std::runtime_error("Incompatible buffer shape for descriptors, dimension 0: number of descriptors, dimension 1: <=" + std::to_string(expectedByteCount));
         }
 
@@ -115,9 +171,14 @@ private:
     }
 };
 
+template <typename ObjectType_>
+using BinaryMatchable488 = srrg_hbst::BinaryMatchable<ObjectType_, 488>;
+template <typename ObjectType_>
+using BinaryNode488 = srrg_hbst::BinaryNode<BinaryMatchable488<ObjectType_>>;
 
 typedef BinaryTreeAdapter<srrg_hbst::BinaryNode128<uint64_t>> BinaryTreeAdapter128;
 typedef BinaryTreeAdapter<srrg_hbst::BinaryNode256<uint64_t>> BinaryTreeAdapter256;
+typedef BinaryTreeAdapter<srrg_hbst::BinaryNode256<uint64_t>> BinaryTreeAdapter488;
 typedef BinaryTreeAdapter<srrg_hbst::BinaryNode512<uint64_t>> BinaryTreeAdapter512;
 
 
@@ -131,6 +192,7 @@ PYBIND11_MODULE(hbst, m) {
 
     BinaryTreeAdapter128::bind(m, "BinaryTree128");
     // BinaryTreeAdapter256::bind(m, "BinaryTree256");
+    // BinaryTreeAdapter488::bind(m, "BinaryTree488");
     // BinaryTreeAdapter512::bind(m, "BinaryTree512");
 
 #ifdef VERSION_INFO

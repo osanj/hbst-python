@@ -23,8 +23,25 @@ def test_basic_tree_usage(tree_cls):
     s1 = slice(0, n1)
     s2 = slice(n1, n1 + n2)
 
-    tree.add(0, train_idx[s1], train_desc[s1], hbst.SplittingStrategy.DoNothing, False)
-    tree.add(1, train_idx[s2], train_desc[s2], hbst.SplittingStrategy.DoNothing, False)
+    tree.add(0, train_idx[s1], train_desc[s1])
+    tree.add(1, train_idx[s2], train_desc[s2])
 
     tree.train(hbst.SplittingStrategy.SplitEven)
     assert tree.size() == 2
+
+    query_id = 99
+    copy_index = -1
+    copy_image_index = 1
+    query_desc = train_desc[copy_index, :]
+    matches = tree.match([query_id], np.expand_dims(query_desc, 0))
+
+    assert len(matches) == 1
+
+    match = matches[0]
+    assert match.distance == 0
+    assert match.query_descriptor_id == query_id
+    assert match.first_match_id == train_idx[copy_index]
+    assert len(match.query_descriptor.descriptor_id_by_image_id) == 1
+
+    matches_by_image_id, _ = tree.partition_matches(matches)
+    assert matches_by_image_id.keys() == {copy_image_index}
