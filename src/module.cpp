@@ -191,9 +191,9 @@ PYBIND11_MODULE(hbst, m) {
         .export_values();
 
     BinaryTreeAdapter128::bind(m, "BinaryTree128");
-    // BinaryTreeAdapter256::bind(m, "BinaryTree256");
-    // BinaryTreeAdapter488::bind(m, "BinaryTree488");
-    // BinaryTreeAdapter512::bind(m, "BinaryTree512");
+    BinaryTreeAdapter256::bind(m, "BinaryTree256");
+    BinaryTreeAdapter488::bind(m, "BinaryTree488");
+    BinaryTreeAdapter512::bind(m, "BinaryTree512");
 
 #ifdef VERSION_INFO
     m.attr("__version__") = MACRO_STRINGIFY(VERSION_INFO);
