@@ -8,6 +8,7 @@ set(CMAKE_INSTALL_PREFIX ${PROJECT_SOURCE_DIR})
 set(INCLUDE_ROOT include)
 
 include_directories(${INCLUDE_ROOT}/srrg_hbst)
+include_directories(${INCLUDE_ROOT}/eigen)
 add_subdirectory(${INCLUDE_ROOT}/pybind11 pybind11)
 pybind11_add_module(hbst src/module.cpp)
 

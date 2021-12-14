@@ -4,6 +4,8 @@
 #include <srrg_hbst/types/binary_matchable.hpp>
 #include <srrg_hbst/types/binary_node.hpp>
 #include <srrg_hbst/types/binary_tree.hpp>
+#include <srrg_hbst/types_probabilistic/probabilistic_matchable.hpp>
+#include <srrg_hbst/types_probabilistic/probabilistic_node.hpp>
 #include <algorithm>
 #include <math.h>
 
@@ -171,15 +173,30 @@ private:
     }
 };
 
-template <typename ObjectType_>
-using BinaryMatchable488 = srrg_hbst::BinaryMatchable<ObjectType_, 488>;
-template <typename ObjectType_>
-using BinaryNode488 = srrg_hbst::BinaryNode<BinaryMatchable488<ObjectType_>>;
+namespace srrg_hbst {
+    template <typename ObjectType_>
+    using BinaryMatchable488 = BinaryMatchable<ObjectType_, 488>;
+    template <typename ObjectType_>
+    using BinaryNode488 = BinaryNode<BinaryMatchable488<ObjectType_>>;
+
+    template <typename ObjectType_>
+    using ProbabilisticNode128 = ProbabilisticNode<BinaryMatchable128<ObjectType_>>;
+    template <typename ObjectType_>
+    using ProbabilisticNode256 = ProbabilisticNode<BinaryMatchable256<ObjectType_>>;
+    template <typename ObjectType_>
+    using ProbabilisticNode488 = ProbabilisticNode<BinaryMatchable488<ObjectType_>>;
+    template <typename ObjectType_>
+    using ProbabilisticNode512 = ProbabilisticNode<BinaryMatchable512<ObjectType_>>;
+}
 
 typedef BinaryTreeAdapter<srrg_hbst::BinaryNode128<uint64_t>> BinaryTreeAdapter128;
 typedef BinaryTreeAdapter<srrg_hbst::BinaryNode256<uint64_t>> BinaryTreeAdapter256;
-typedef BinaryTreeAdapter<srrg_hbst::BinaryNode256<uint64_t>> BinaryTreeAdapter488;
+typedef BinaryTreeAdapter<srrg_hbst::BinaryNode488<uint64_t>> BinaryTreeAdapter488;
 typedef BinaryTreeAdapter<srrg_hbst::BinaryNode512<uint64_t>> BinaryTreeAdapter512;
+typedef BinaryTreeAdapter<srrg_hbst::ProbabilisticNode128<uint64_t>> ProbabilisticBinaryTreeAdapter128;
+typedef BinaryTreeAdapter<srrg_hbst::ProbabilisticNode256<uint64_t>> ProbabilisticBinaryTreeAdapter256;
+typedef BinaryTreeAdapter<srrg_hbst::ProbabilisticNode488<uint64_t>> ProbabilisticBinaryTreeAdapter488;
+typedef BinaryTreeAdapter<srrg_hbst::ProbabilisticNode512<uint64_t>> ProbabilisticBinaryTreeAdapter512;
 
 
 PYBIND11_MODULE(hbst, m) {
@@ -194,6 +211,10 @@ PYBIND11_MODULE(hbst, m) {
     // BinaryTreeAdapter256::bind(m, "BinaryTree256");
     // BinaryTreeAdapter488::bind(m, "BinaryTree488");
     // BinaryTreeAdapter512::bind(m, "BinaryTree512");
+    ProbabilisticBinaryTreeAdapter128::bind(m, "ProbabilisticBinaryTree128");
+    // ProbabilisticBinaryTreeAdapter256::bind(m, "ProbabilisticBinaryTree256");
+    // ProbabilisticBinaryTreeAdapter488::bind(m, "ProbabilisticBinaryTree488");
+    // ProbabilisticBinaryTreeAdapter512::bind(m, "ProbabilisticBinaryTree512");
 
 #ifdef VERSION_INFO
     m.attr("__version__") = MACRO_STRINGIFY(VERSION_INFO);

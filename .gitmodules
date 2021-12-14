@@ -4,3 +4,6 @@
 [submodule "include/pybind11"]
 	path = include/pybind11
 	url = https://github.com/pybind/pybind11
+[submodule "include/eigen"]
+	path = include/eigen
+	url = https://gitlab.com/libeigen/eigen
