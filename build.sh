@@ -29,8 +29,7 @@ if [ "$PLAT" == "$PLAT_X86_64" ]; then
         exit 1
     fi
 
-    PYTHON_EXEC=$PYTHON_EXEC docker-compose -f build-compose.yml up
-
+    PYTHON_EXEC=$PYTHON_EXEC docker-compose -f build-compose.yml run linux_x86_64
 
 else
     echo "platform $PLAT is not supported"
