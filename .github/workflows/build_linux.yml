@@ -1,0 +1,48 @@
+name: Build and test wheels
+
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - automatic_build
+  release:
+    types: [published, edited]
+
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest]
+        python-version: ['3.6', '3.7', '3.8', '3.9']
+
+    env:
+      DEBUG: 0
+    
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+      with:
+        submodules: true
+        fetch-depth: 1
+
+    # - name: Update submodules
+    #   if: github.event_name == 'pull_request'
+    #   run: git submodule update --remote
+
+    - name: Build wheel
+      run: build.sh x86_64 "${{ matrix.python-version }}"
+
+    - name: Save wheel
+      uses: actions/upload-artifact@v2
+      with:
+        name: wheels
+        path: dist/hbst*.whl

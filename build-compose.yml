@@ -1,0 +1,12 @@
+version: "3"
+services:
+  linux_x86_64:
+    build:
+      dockerfile: docker/manylinux1/x86_64.Dockerfile
+      context: .
+    volumes:
+      - .:/repo
+    # environment:
+    #   - PYTHON=
+    working_dir: /repo
+    command: ${PYTHON_EXEC} setup.py sdist bdist_wheel

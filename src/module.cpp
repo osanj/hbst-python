@@ -171,14 +171,16 @@ private:
     }
 };
 
-template <typename ObjectType_>
-using BinaryMatchable488 = srrg_hbst::BinaryMatchable<ObjectType_, 488>;
-template <typename ObjectType_>
-using BinaryNode488 = srrg_hbst::BinaryNode<BinaryMatchable488<ObjectType_>>;
+namespace srrg_hbst {
+    template <typename ObjectType_>
+    using BinaryMatchable488 = srrg_hbst::BinaryMatchable<ObjectType_, 488>;
+    template <typename ObjectType_>
+    using BinaryNode488 = srrg_hbst::BinaryNode<BinaryMatchable488<ObjectType_>>;
+}
 
 typedef BinaryTreeAdapter<srrg_hbst::BinaryNode128<uint64_t>> BinaryTreeAdapter128;
 typedef BinaryTreeAdapter<srrg_hbst::BinaryNode256<uint64_t>> BinaryTreeAdapter256;
-typedef BinaryTreeAdapter<srrg_hbst::BinaryNode256<uint64_t>> BinaryTreeAdapter488;
+typedef BinaryTreeAdapter<srrg_hbst::BinaryNode488<uint64_t>> BinaryTreeAdapter488;
 typedef BinaryTreeAdapter<srrg_hbst::BinaryNode512<uint64_t>> BinaryTreeAdapter512;
 
 

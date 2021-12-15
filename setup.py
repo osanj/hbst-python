@@ -10,7 +10,7 @@ from setuptools.command.build_ext import build_ext
 
 NAME = "hbst-python"
 VERSION = "0.0.1"
-DEBUG = True
+DEBUG = False
 
 
 class CMakeExtension(Extension):
@@ -73,26 +73,23 @@ class CleanCommand(Command):
         pass
 
     def run(self):
-        for d in ("build", "dist", NAME.replace("-", "_"))
+        for d in ("build", "dist", NAME.replace("-", "_")):
             if os.path.exists(d):
                 shutil.rmtree(d)
 
 
-# The information here can also be placed in setup.cfg - better separation of
-# logic and declaration, and simpler if you include description/version in a file.
 setup(
-    name="hbst-python",
-    version="0.0.1",
+    name=NAME,
+    version=VERSION,
     author="Jonas Schuepfer",
     author_email="jonasschuepfergmail.com",
     description="Python bindings for the original Hamming Binary Search Tree implementation",
     long_description="",
-    ext_modules=[CMakeExtension("hbst-python")],
+    ext_modules=[CMakeExtension(NAME)],
     cmdclass={
         "build_ext": CMakeBuild,
         "clean": CleanCommand
     },
     zip_safe=False,
-    extras_require={"test": ["pytest>=6.0"]},
     python_requires=">=3.6",
 )
