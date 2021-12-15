@@ -1,14 +1,11 @@
-name: Build and test wheels
+name: Build, Test and Publish Wheels for Linux
 
 on:
   pull_request:
     branches:
       - main
-  push:
-    branches:
-      - automatic_build
   release:
-    types: [published, edited]
+    types: [published]
 
 
 jobs:
@@ -33,11 +30,7 @@ jobs:
         submodules: true
         fetch-depth: 1
 
-    # - name: Update submodules
-    #   if: github.event_name == 'pull_request'
-    #   run: git submodule update --remote
-
-    - name: Build wheel
+    - name: Build wheels
       run: |
         ./build.sh x86_64 3.6
         ./build.sh x86_64 3.7
@@ -81,7 +74,7 @@ jobs:
 
 
   test_release:
-    #if: github.event_name == 'release' && github.event.release.prerelease
+    if: github.event_name == 'release' && github.event.release.prerelease
     needs: [build, test]
     runs-on: ubuntu-latest
     environment: test-release
