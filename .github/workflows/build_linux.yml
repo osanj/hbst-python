@@ -22,7 +22,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        python-version: ['3.6', '3.7', '3.8', '3.9']
+        python-version: ['3.6'] #, '3.7', '3.8', '3.9']
 
     env:
       DEBUG: 0
@@ -39,7 +39,7 @@ jobs:
     #   run: git submodule update --remote
 
     - name: Build wheel
-      run: build.sh x86_64 "${{ matrix.python-version }}"
+      run: ./build.sh x86_64 "${{ matrix.python-version }}"
 
     - name: Save wheel
       uses: actions/upload-artifact@v2

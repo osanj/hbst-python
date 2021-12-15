@@ -6,7 +6,5 @@ services:
       context: .
     volumes:
       - .:/repo
-    # environment:
-    #   - PYTHON=
     working_dir: /repo
     command: ${PYTHON_EXEC} setup.py sdist bdist_wheel
