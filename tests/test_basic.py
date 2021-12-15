@@ -4,6 +4,9 @@ import hbst
 import numpy as np
 
 
+TREE_CLS = [hbst.BinaryTree128, hbst.BinaryTree256, hbst.BinaryTree488, hbst.BinaryTree512]
+
+
 def build_descriptors(n: int, desc_size: int) -> np.ndarray:
     descs = np.zeros((n, desc_size), dtype=np.uint8)
     for i in range(n):
@@ -11,7 +14,7 @@ def build_descriptors(n: int, desc_size: int) -> np.ndarray:
     return descs
 
 
-@pytest.mark.parametrize("tree_cls", [hbst.BinaryTree128])  #, hbst.BinaryTree256, hbst.BinaryTree512])
+@pytest.mark.parametrize("tree_cls", TREE_CLS)
 def test_basic_tree_usage(tree_cls):
     tree = tree_cls()
     desc_size = tree.get_desc_size_in_bytes()
