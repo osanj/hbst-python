@@ -48,7 +48,7 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: wheels
-        path: dist/hbst*.whl
+        path: wheelhouse/hbst*.whl
 
   test:
     needs: [build]
@@ -74,10 +74,10 @@ jobs:
       uses: actions/download-artifact@v2
       with:
         name: wheels
-        path: dist/
+        path: wheelhouse/
 
     - name: Test wheel
-      run: ./test.sh x86_64 ${{ matrix.python-version }} dist
+      run: ./test.sh x86_64 ${{ matrix.python-version }} wheelhouse
 
 
   test_release:
@@ -93,12 +93,12 @@ jobs:
       - uses: actions/download-artifact@v2
         with:
           name: wheels
-          path: dist/
+          path: wheelhouse/
 
       - name: Upload all wheels
         run: |
           python -m pip install twine
-          python -m twine upload --repository testpypi -u ${{ secrets.TEST_PYPI_USERNAME }} -p ${{ secrets.TEST_PYPI_PASSWORD }} --skip-existing dist/hbst*
+          python -m twine upload --repository testpypi -u ${{ secrets.TEST_PYPI_USERNAME }} -p ${{ secrets.TEST_PYPI_PASSWORD }} --skip-existing wheelhouse/hbst*
 
 
   release:
@@ -114,9 +114,9 @@ jobs:
       - uses: actions/download-artifact@v2
         with:
           name: wheels
-          path: dist/
+          path: wheelhouse/
 
       - name: Upload all wheels
         run: |
           python -m pip install twine
-          python -m twine upload -u ${{ secrets.PYPI_USERNAME }} -p ${{ secrets.PYPI_PASSWORD }} --skip-existing dist/hbst*
+          python -m twine upload -u ${{ secrets.PYPI_USERNAME }} -p ${{ secrets.PYPI_PASSWORD }} --skip-existing wheelhouse/hbst*

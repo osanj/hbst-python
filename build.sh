@@ -17,19 +17,19 @@ fi
 
 if [ "$PLAT" == "$PLAT_X86_64" ]; then
     if [ "$PYTHON" == "$PYTHON_3_6" ]; then
-        PYTHON_EXEC="/opt/python/cp36-cp36m/bin/python3"
+        PY="36"
     elif [ "$PYTHON" == "$PYTHON_3_7" ]; then
-        PYTHON_EXEC="/opt/python/cp37-cp37m/bin/python3"
+        PY="37"
     elif [ "$PYTHON" == "$PYTHON_3_8" ]; then
-        PYTHON_EXEC="/opt/python/cp38-cp38/bin/python3"
+        PY="38"
     elif [ "$PYTHON" == "$PYTHON_3_9" ]; then
-        PYTHON_EXEC="/opt/python/cp39-cp39/bin/python3"
+        PY="39"
     else
         echo "python $PYTHON is not supported for platform $PLAT"
         exit 1
     fi
 
-    PYTHON_EXEC=$PYTHON_EXEC docker-compose -f build-compose.yml run linux_x86_64
+    PY=$PY docker-compose -f build-compose.yml run linux_x86_64
 
 else
     echo "platform $PLAT is not supported"

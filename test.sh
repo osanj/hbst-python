@@ -8,7 +8,7 @@ PYTHON_3_9="3.9"
 
 PLAT=$1
 PYTHON=$2
-DIST_DIR=${3:-dist}
+WHEEL_DIR=${3:-dist}
 
 if [ -z "$PLAT" ] || [ -z "$PYTHON" ]; then
     echo "usage: $0 platform python-version"
@@ -30,7 +30,7 @@ if [ "$PLAT" == "$PLAT_X86_64" ]; then
         exit 1
     fi
 
-    WHEEL="$DIST_DIR/hbst*$PY*linux_x86_64.whl" docker-compose -f test-compose.yml run linux_x86_64_python_$PY
+    WHEEL="$WHEEL_DIR/hbst*$PY*manylinux1_x86_64.whl" docker-compose -f test-compose.yml run linux_x86_64_python_$PY
 
 else
     echo "platform $PLAT is not supported"

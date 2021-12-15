@@ -16,3 +16,19 @@ RUN cd /opt && \
     make install && \
     cd .. && \
     rm -rf cmake-3.9.0*
+
+RUN cd /opt && \
+    git clone --branch 0.10 https://github.com/NixOS/patchelf.git && \
+    cd patchelf && \
+    ./bootstrap.sh && \
+    ./configure && \
+    make && \
+    make check && \
+    make install
+
+RUN /opt/python/cp36-cp36m/bin/pip install auditwheel==5.0.0
+RUN /opt/python/cp37-cp37m/bin/pip install auditwheel==5.0.0
+RUN /opt/python/cp38-cp38/bin/pip install auditwheel==5.0.0
+RUN /opt/python/cp39-cp39/bin/pip install auditwheel==5.0.0
+
+ADD build_x86_64.sh /

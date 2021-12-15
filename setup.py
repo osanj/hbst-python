@@ -83,7 +83,7 @@ setup(
     version=VERSION,
     author="Jonas Schuepfer",
     author_email="jonasschuepfer@gmail.com",
-    description="Python bindings for the original Hamming Binary Search Tree implementation",
+    description="Python bindings for the original hamming distance embedding binary search tree for feature-based visual place recognition implementation",
     long_description="",
     ext_modules=[CMakeExtension(NAME)],
     cmdclass={
