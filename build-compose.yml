@@ -1,0 +1,10 @@
+version: "3"
+services:
+  linux_x86_64:
+    build:
+      dockerfile: x86_64.Dockerfile
+      context: docker/manylinux1
+    volumes:
+      - .:/repo
+    working_dir: /repo
+    command: /build_x86_64.sh /repo ${PY}

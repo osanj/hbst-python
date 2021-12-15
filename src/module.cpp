@@ -171,14 +171,16 @@ private:
     }
 };
 
-template <typename ObjectType_>
-using BinaryMatchable488 = srrg_hbst::BinaryMatchable<ObjectType_, 488>;
-template <typename ObjectType_>
-using BinaryNode488 = srrg_hbst::BinaryNode<BinaryMatchable488<ObjectType_>>;
+namespace srrg_hbst {
+    template <typename ObjectType_>
+    using BinaryMatchable488 = srrg_hbst::BinaryMatchable<ObjectType_, 488>;
+    template <typename ObjectType_>
+    using BinaryNode488 = srrg_hbst::BinaryNode<BinaryMatchable488<ObjectType_>>;
+}
 
 typedef BinaryTreeAdapter<srrg_hbst::BinaryNode128<uint64_t>> BinaryTreeAdapter128;
 typedef BinaryTreeAdapter<srrg_hbst::BinaryNode256<uint64_t>> BinaryTreeAdapter256;
-typedef BinaryTreeAdapter<srrg_hbst::BinaryNode256<uint64_t>> BinaryTreeAdapter488;
+typedef BinaryTreeAdapter<srrg_hbst::BinaryNode488<uint64_t>> BinaryTreeAdapter488;
 typedef BinaryTreeAdapter<srrg_hbst::BinaryNode512<uint64_t>> BinaryTreeAdapter512;
 
 
@@ -191,9 +193,9 @@ PYBIND11_MODULE(hbst, m) {
         .export_values();
 
     BinaryTreeAdapter128::bind(m, "BinaryTree128");
-    // BinaryTreeAdapter256::bind(m, "BinaryTree256");
-    // BinaryTreeAdapter488::bind(m, "BinaryTree488");
-    // BinaryTreeAdapter512::bind(m, "BinaryTree512");
+    BinaryTreeAdapter256::bind(m, "BinaryTree256");
+    BinaryTreeAdapter488::bind(m, "BinaryTree488");
+    BinaryTreeAdapter512::bind(m, "BinaryTree512");
 
 #ifdef VERSION_INFO
     m.attr("__version__") = MACRO_STRINGIFY(VERSION_INFO);
