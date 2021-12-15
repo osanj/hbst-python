@@ -78,3 +78,45 @@ jobs:
 
     - name: Test wheel
       run: ./test.sh x86_64 ${{ matrix.python-version }} dist
+
+
+  test_release:
+    #if: github.event_name == 'release' && github.event.release.prerelease
+    needs: [build, test]
+    runs-on: ubuntu-latest
+    environment: test-release
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+      - uses: actions/download-artifact@v2
+        with:
+          name: wheels
+          path: dist/
+
+      - name: Upload all wheels
+        run: |
+          python -m pip install twine
+          python -m twine upload --repository testpypi -u ${{ secrets.TEST_PYPI_USERNAME }} -p ${{ secrets.TEST_PYPI_PASSWORD }} --skip-existing dist/hbst*
+
+
+  release:
+    if: github.event_name == 'release' && !github.event.release.prerelease
+    needs: [build, test]
+    runs-on: ubuntu-latest
+    environment: release
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+      - uses: actions/download-artifact@v2
+        with:
+          name: wheels
+          path: dist/
+
+      - name: Upload all wheels
+        run: |
+          python -m pip install twine
+          python -m twine upload -u ${{ secrets.PYPI_USERNAME }} -p ${{ secrets.PYPI_PASSWORD }} --skip-existing dist/hbst*
