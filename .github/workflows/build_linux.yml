@@ -38,10 +38,11 @@ jobs:
     #   run: git submodule update --remote
 
     - name: Build wheel
-      run: ./build.sh x86_64 3.6
-      run: ./build.sh x86_64 3.7
-      run: ./build.sh x86_64 3.8
-      run: ./build.sh x86_64 3.9
+      run: |
+        ./build.sh x86_64 3.6
+        ./build.sh x86_64 3.7
+        ./build.sh x86_64 3.8
+        ./build.sh x86_64 3.9
 
     - name: Save wheel
       uses: actions/upload-artifact@v2
