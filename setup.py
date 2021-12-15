@@ -82,7 +82,7 @@ setup(
     name=NAME,
     version=VERSION,
     author="Jonas Schuepfer",
-    author_email="jonasschuepfergmail.com",
+    author_email="jonasschuepfer@gmail.com",
     description="Python bindings for the original Hamming Binary Search Tree implementation",
     long_description="",
     ext_modules=[CMakeExtension(NAME)],
