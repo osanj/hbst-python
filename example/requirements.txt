@@ -1,0 +1,2 @@
+hbst-python
+opencv-python
