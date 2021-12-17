@@ -1,4 +1,4 @@
-from typing import Dict, List, Mapping, Optional, Tuple
+from typing import Dict, List, Mapping, Tuple
 
 import cv2 as cv
 import hbst
@@ -23,10 +23,10 @@ class Matcher(object):
 class BruteForceMatcher(Matcher):
 
     def __init__(self, norm: int, features: Dict[int, Tuple[List[cv.KeyPoint], np.ndarray]],
-                 match_ratio: Optional[float] = 0.7) -> None:
+                 max_dist: int = 25) -> None:
         super().__init__(features)
         self.bfm = cv.BFMatcher(norm)
-        self.match_ratio = match_ratio
+        self.max_dist = max_dist
 
     def match(self, query_descs: np.ndarray) -> Dict[int, Tuple[List[cv.DMatch], Mapping[int, cv.KeyPoint]]]:
         matches = {}
@@ -39,7 +39,7 @@ class BruteForceMatcher(Matcher):
         matches = self.bfm.knnMatch(query_descs, descs, k=2)
         good_matches: List[cv.DMatch] = []
         for m, n in matches:
-            if self.match_ratio is None or m.distance < self.match_ratio * n.distance:
+            if m.distance <= self.max_dist:
                 good_matches.append(m)
         return good_matches, {k: v for k, v in enumerate(kp)}
 
@@ -58,9 +58,9 @@ class HbstMatcher(Matcher):
 
         self.tree = tree_cls(pad_if_required)
         self.max_dist = max_dist
-        for im_id, (_, descs) in enumerate(features.items()):
+        for im_id, (_, descs) in features.items():
             self.tree.add(im_id, np.arange(len(descs), dtype=np.uint64), descs)
-        self.tree.train(hbst.Splittingintategy.SplitEven)
+        self.tree.train(hbst.SplittingStrategy.SplitEven)
 
     def match(self, query_descs: np.ndarray) -> Dict[int, Tuple[List[cv.DMatch], Mapping[int, cv.KeyPoint]]]:
         all_matches = self.tree.match(np.arange(len(query_descs), dtype=np.uint64), query_descs,

@@ -4,7 +4,7 @@ x-linux_x86_64_common: &linux_x86_64_common
   volumes:
     - .:/repo
   working_dir: /repo
-  command: bash -c "pip install ${WHEEL} && pytest -v tests"
+  command: bash -c "pip install ${WHEEL} && pytest -v tests && cd example && python3 match.py"
 
 services:
   linux_x86_64_python_36:

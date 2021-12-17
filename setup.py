@@ -1,5 +1,4 @@
 import os
-import re
 import subprocess
 import sys
 import shutil
@@ -73,7 +72,7 @@ class CleanCommand(Command):
         pass
 
     def run(self):
-        for d in ("build", "dist", NAME.replace("-", "_")):
+        for d in ("build", "dist", NAME.replace("-", "_"), "wheelhouse"):
             if os.path.exists(d):
                 shutil.rmtree(d)
 
@@ -83,13 +82,15 @@ setup(
     version=VERSION,
     author="Jonas Schuepfer",
     author_email="jonasschuepfer@gmail.com",
-    description="Python bindings for the original hamming distance embedding binary search tree for feature-based visual place recognition implementation",
+    description=("Python bindings for the original implementation of the hamming distance embedding binary search tree "
+                 "for feature-based visual place recognition implementation"),
     long_description="",
     ext_modules=[CMakeExtension(NAME)],
     cmdclass={
         "build_ext": CMakeBuild,
         "clean": CleanCommand
     },
+    install_requires=["numpy"],
     zip_safe=False,
     python_requires=">=3.6",
 )

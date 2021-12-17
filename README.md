@@ -1,7 +1,8 @@
 # hbst-python
 
 Python bindings and pre-compiled binaries for the [Hamming Binary Search Tree (HBST)](https://gitlab.com/srrg-software/srrg_hbst)
-for visual place recognition. The HBST algorithm and [paper](https://arxiv.org/abs/1802.09261) is not my work. If you use this library please cite the authors:
+for visual place recognition with binary descriptors. The HBST algorithm and [paper](https://arxiv.org/abs/1802.09261)
+is not my work, if you use this library please cite the original authors:
 
 ```
 @article{2018-schlegel-hbst, 
@@ -24,12 +25,15 @@ pip install hbst-python
 
 Note that currently only Linux x86_64 is supported.
 
-Check out the [example](example/match.py) to get started with OpenCV descriptors and HBST.
+To get started check out the [example](example/match.py) with OpenCV descriptors and HBST. Note that this matcher
+will only produce useful results with binary descriptors (e.g. ORB, BRISK or AKAZE). It is not suitable for SIFT,
+SURF and the likes.
 
 
 ## Development
 
-Development use cases are dockerized. The commands below will spawn the respective docker container mount the repo inside and do the job.
+Development use cases are dockerized. The commands below will spawn the respective
+docker container mount the repo inside and get the job done.
 
 Syntax:
 ```bash
@@ -39,6 +43,6 @@ Syntax:
 
 Example:
 ```bash
-./build.sh linux_x86_64 3.8
-./test.sh linux_x86_64 3.8
+./build.sh x86_64 3.8
+./test.sh x86_64 3.8
 ```

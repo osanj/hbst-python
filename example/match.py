@@ -9,18 +9,23 @@ def run() -> None:
     train_paths = ["images/graf1.png", "images/leuvenA.jpg"]
     test_paths = ["images/leuvenB.jpg"]
 
-    orb = cv.ORB(1000)
-
+    orb = cv.ORB_create(1000)
     train_features = {}
     for i, path in enumerate(train_paths):
         im = cv.imread(path)
         kps, descs = orb.detectAndCompute(im, mask=None)
         train_features[i] = (kps, descs)
 
-    matchers = [BruteForceMatcher(train_features),
-                HbstMatcher(orb.descriptorSize(), train_features)]
+    max_dist = 50  # hamming distance (number of bit flips)
+    matchers = [
+        BruteForceMatcher(orb.defaultNorm(), train_features, max_dist=max_dist),
+        HbstMatcher(orb.descriptorSize() * 8, train_features, max_dist=max_dist)
+    ]
 
     for path in test_paths:
+        print(f"testing {path}")
+        print()
+
         im = cv.imread(path)
         _, query_descs = orb.detectAndCompute(im, mask=None)
 
