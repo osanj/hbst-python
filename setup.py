@@ -82,14 +82,19 @@ setup(
     version=VERSION,
     author="Jonas Schuepfer",
     author_email="jonasschuepfer@gmail.com",
-    description=("Python bindings for the original implementation of the hamming distance embedding binary search tree "
-                 "for feature-based visual place recognition implementation"),
-    long_description="",
+    description="Python bindings for hbst library for visual place recognition",
+    long_description=("Python bindings for the original implementation of the hamming distance embedding binary"
+                      "search tree for feature-based visual place recognition implementation,"
+                      "see https://gitlab.com/srrg-software/srrg_hbst"),
+    project_urls={"Source Code": "https://github.com/osanj/hbst-python"},
+    license="BSD",
+    platforms=["Linux"],
     ext_modules=[CMakeExtension(NAME)],
     cmdclass={
         "build_ext": CMakeBuild,
         "clean": CleanCommand
     },
+    license_files=("LICENSE.txt",),
     install_requires=["numpy"],
     zip_safe=False,
     python_requires=">=3.6",
