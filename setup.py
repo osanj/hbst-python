@@ -8,7 +8,7 @@ from setuptools.command.build_ext import build_ext
 
 
 NAME = "hbst-python"
-VERSION = "0.0.1"
+VERSION = "0.1.0"
 DEBUG = False
 
 
