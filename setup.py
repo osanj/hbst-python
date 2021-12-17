@@ -1,5 +1,4 @@
 import os
-import re
 import subprocess
 import sys
 import shutil
@@ -9,7 +8,7 @@ from setuptools.command.build_ext import build_ext
 
 
 NAME = "hbst-python"
-VERSION = "0.0.1rc1"
+VERSION = "0.0.1"
 DEBUG = False
 
 
@@ -73,7 +72,7 @@ class CleanCommand(Command):
         pass
 
     def run(self):
-        for d in ("build", "dist", NAME.replace("-", "_")):
+        for d in ("build", "dist", NAME.replace("-", "_"), "wheelhouse"):
             if os.path.exists(d):
                 shutil.rmtree(d)
 
@@ -83,13 +82,20 @@ setup(
     version=VERSION,
     author="Jonas Schuepfer",
     author_email="jonasschuepfer@gmail.com",
-    description="Python bindings for the original hamming distance embedding binary search tree for feature-based visual place recognition implementation",
-    long_description="",
+    description="Python bindings for hbst library for visual place recognition",
+    long_description=("Python bindings for the original implementation of the hamming distance embedding binary"
+                      "search tree for feature-based visual place recognition implementation,"
+                      "see https://gitlab.com/srrg-software/srrg_hbst"),
+    project_urls={"Source Code": "https://github.com/osanj/hbst-python"},
+    license="BSD",
+    platforms=["Linux"],
     ext_modules=[CMakeExtension(NAME)],
     cmdclass={
         "build_ext": CMakeBuild,
         "clean": CleanCommand
     },
+    license_files=("LICENSE.txt",),
+    install_requires=["numpy"],
     zip_safe=False,
     python_requires=">=3.6",
 )
