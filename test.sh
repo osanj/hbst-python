@@ -8,7 +8,7 @@ PYTHON_3_9="3.9"
 
 PLAT=$1
 PYTHON=$2
-WHEEL_DIR=${3:-dist}
+WHEEL_DIR=${3:-wheelhouse}
 
 if [ -z "$PLAT" ] || [ -z "$PYTHON" ]; then
     echo "usage: $0 platform python-version"
