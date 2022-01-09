@@ -23,6 +23,9 @@ public:
     template<class F, class R>
     std::future<R> enqueue(F&& f);
 
+    template<class F, class R>
+    void map(std::vector<F&&>& fs, std::vector<R>& rs);
+
     uint32_t size();
     void start();
     void abort();

@@ -55,25 +55,49 @@ public:
     }
 
     MatchVector match(py::array_t<ObjectType> queryDescriptorIds, py::array_t<uint8_t> queryDescriptors, uint32_t maximumDistance, bool lazy) {
-        MatchVector matches;
+        MatchVector allMatches;
         MatchableVector query = buildMatchableVector(0, queryDescriptorIds, queryDescriptors);
 
         if (threadpool != NULL) {
             uint32_t splitStep = query.size() / threadpool->size();
+            std::vector<MatchVector*> matches;
+            std::vector<std::future<void>> futures;
 
-            // ...
+            for (int i = 0; i < threadpool->size(); i++) {
+                MatchVector* m = new MatchVector();
+                auto t = [&]() -> void {
+                    matchTask(query, i * splitStep, (i + 1) * splitStep, *m, maximumDistance, lazy);
+                };
+                matches.push_back(m);
+                futures.push_back(threadpool->enqueue<std::function<void()>, void>(t));
+            }
+
+            for (int i = 0; i < threadpool->size(); i++) {
+                futures[i].get();
+                MatchVector* m = matches[i];
+                allMatches.insert(allMatches.end(), m->begin(), m->end());
+                delete m;
+            }
+
         } else {
-            matchTask(query, 0, query.size(), matches, maximumDistance, lazy);
+            matchTask(query, 0, query.size(), allMatches, maximumDistance, lazy);
         }
 
-        return matches;
+        return allMatches;
     }
 
     void matchTask(MatchableVector& query, uint32_t offset, uint32_t size, MatchVector& matches, uint32_t maximumDistance, bool lazy) {
-        if (lazy) {
-            BinaryTree::matchLazy(query, matches, maximumDistance);
+        MatchableVector mv;
+        if (offset == 0 && size >= query.size()) {
+            mv = query;
         } else {
-            BinaryTree::match(query, matches, maximumDistance);
+            int limit = std::min((uint32_t) query.size(), offset + size);
+            mv.insert(mv.end(), query.begin() + offset, query.end() + limit);
+        }
+        if (lazy) {
+            BinaryTree::matchLazy(mv, matches, maximumDistance);
+        } else {
+            BinaryTree::match(mv, matches, maximumDistance);
         }
     }
 

@@ -43,6 +43,19 @@ std::future<R> Threadpool::enqueue(F&& f) {
     return r;
 }
 
+template<class F, class R>
+void Threadpool::map(std::vector<F&&>& fs, std::vector<R>& rs) {
+    std::vector<std::future<R>> futures;
+
+    for (auto task : fs) {
+        futures.push_back(enqueue(task));
+    }
+
+    for (auto future : futures) {
+        rs.push_back(future.get());
+    }
+}
+
 uint32_t Threadpool::size() {
     return count;
 }
