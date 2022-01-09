@@ -30,7 +30,6 @@ class CMakeBuild(build_ext):
 
         debug = int(os.environ.get("DEBUG", DEBUG))
         cfg = "Debug" if debug else "Release"
-        cmake_generator = os.environ.get("CMAKE_GENERATOR", "")
 
         cmake_args = [
             f"-DCMAKE_LIBRARY_OUTPUT_DIRECTORY={extdir}",
@@ -83,9 +82,9 @@ setup(
     author="Jonas Schuepfer",
     author_email="jonasschuepfer@gmail.com",
     description="Python bindings for hbst library for visual place recognition",
-    long_description=("Python bindings for the original implementation of the hamming distance embedding binary"
-                      "search tree for feature-based visual place recognition implementation,"
-                      "see https://gitlab.com/srrg-software/srrg_hbst"),
+    long_description=("Python bindings for the original implementation of the hamming distance embedding binary "
+                      "search tree for feature-based visual place recognition implementation, "
+                      "for more details see https://gitlab.com/srrg-software/srrg_hbst"),
     project_urls={"Source Code": "https://github.com/osanj/hbst-python"},
     license="BSD",
     platforms=["Linux"],
