@@ -24,7 +24,11 @@ public:
     using MatchVector = typename BinaryTree::MatchVector;
     using Descriptor = typename BinaryTree::Descriptor;
 
-    BinaryTreeAdapter(bool _padDescriptorsIfRequired) : padDescriptorsIfRequired(_padDescriptorsIfRequired) {}
+    BinaryTreeAdapter(uint32_t _threads, bool _padDescriptorsIfRequired) : padDescriptorsIfRequired(_padDescriptorsIfRequired) {
+        if (threads > 1) {
+            // create threads
+        }
+    }
 
     void add(uint16_t imageId, py::array_t<ObjectType> descriptorIds, py::array_t<uint8_t> descriptors) {
         MatchableVector matchables = std::move(buildMatchableVector(imageId, descriptorIds, descriptors));
@@ -46,6 +50,16 @@ public:
     MatchVector match(py::array_t<ObjectType> queryDescriptorIds, py::array_t<uint8_t> queryDescriptors, uint32_t maximumDistance, bool lazy) {
         MatchVector matches;
         MatchableVector query = buildMatchableVector(0, queryDescriptorIds, queryDescriptors);
+
+        for (int t = 0; t < threads; t++) {
+            matchSubset(query, matches, maximumDistance, lazy);
+        }
+
+        return matches;
+    }
+
+    void matchSubset(MatchableVector& query, MatchVector& matches, uint32_t maximumDistance, bool lazy) {
+        MatchVector matches;
 
         if (lazy) {
             BinaryTree::matchLazy(query, matches, maximumDistance);
@@ -87,7 +101,7 @@ public:
     static void bind(pybind11::module_& m, std::string name) {
         using clsTree = BinaryTreeAdapter<BinaryNodeType_>;
         auto tree = py::class_<clsTree>(m, name.c_str());
-        tree.def(py::init<bool>(), py::arg("pad_descriptors_if_required") = false);
+        tree.def(py::init<bool>(), py::arg("threads") = 1, py::arg("pad_descriptors_if_required") = false);
         tree.def("add", &clsTree::add, py::arg("image_id"), py::arg("descriptor_ids"), py::arg("descriptors"));
         tree.def("train", &clsTree::train, py::arg("mode") = srrg_hbst::SplittingStrategy::SplitEven);
         tree.def("match", &clsTree::match, py::arg("query_descriptor_ids"), py::arg("query_descriptors"), py::arg("max_distance") = 25, py::arg("lazy") = false);
