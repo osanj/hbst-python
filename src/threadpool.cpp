@@ -29,18 +29,22 @@ void Threadpool::threadTask() {
     }
 }
 
-template<class F, class R=std::result_of_t<F&()>>
-std::future<R> Threadpool::queue(F&& f) {
+template<class F, class R>
+std::future<R> Threadpool::enqueue(F&& f) {
     std::packaged_task<R()> p(std::forward<F>(f));
 
-    auto r=p.get_future();
+    auto r = p.get_future();
     {
         std::unique_lock<std::mutex> l(m);
-        work.emplace_back(std::move(p));
+        tasks.emplace_back(std::move(p));
     }
-    v.notify_one();
 
+    v.notify_one();
     return r;
+}
+
+uint32_t Threadpool::size() {
+    return count;
 }
 
 void Threadpool::start() {

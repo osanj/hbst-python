@@ -19,10 +19,11 @@ private:
 public:
     Threadpool(uint32_t count);
     ~Threadpool();
-    
-    template<class F, class R=std::result_of_t<F&()>>
-    std::future<R> queue(F&& f);
-    
+
+    template<class F, class R>
+    std::future<R> enqueue(F&& f);
+
+    uint32_t size();
     void start();
     void abort();
     void cancelPending();

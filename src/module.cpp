@@ -6,6 +6,7 @@
 #include <srrg_hbst/types/binary_tree.hpp>
 #include <algorithm>
 #include <math.h>
+#include "threadpool.h"
 
 namespace py = pybind11;
 
@@ -25,8 +26,14 @@ public:
     using Descriptor = typename BinaryTree::Descriptor;
 
     BinaryTreeAdapter(uint32_t _threads, bool _padDescriptorsIfRequired) : padDescriptorsIfRequired(_padDescriptorsIfRequired) {
-        if (threads > 1) {
-            // create threads
+        if (_threads > 1) {
+            threadpool = new Threadpool(_threads);
+        }
+    }
+
+    ~BinaryTreeAdapter() {
+        if (threadpool != NULL) {
+            delete threadpool;
         }
     }
 
@@ -51,23 +58,23 @@ public:
         MatchVector matches;
         MatchableVector query = buildMatchableVector(0, queryDescriptorIds, queryDescriptors);
 
-        for (int t = 0; t < threads; t++) {
-            matchSubset(query, matches, maximumDistance, lazy);
+        if (threadpool != NULL) {
+            uint32_t splitStep = query.size() / threadpool->size();
+
+            // ...
+        } else {
+            matchTask(query, 0, query.size(), matches, maximumDistance, lazy);
         }
 
         return matches;
     }
 
-    void matchSubset(MatchableVector& query, MatchVector& matches, uint32_t maximumDistance, bool lazy) {
-        MatchVector matches;
-
+    void matchTask(MatchableVector& query, uint32_t offset, uint32_t size, MatchVector& matches, uint32_t maximumDistance, bool lazy) {
         if (lazy) {
             BinaryTree::matchLazy(query, matches, maximumDistance);
         } else {
             BinaryTree::match(query, matches, maximumDistance);
         }
-
-        return matches;
     }
 
     static std::pair<std::unordered_map<ObjectType, MatchVector>, std::vector<ObjectType>> partitionMatches(MatchVector& matches) {
@@ -101,7 +108,7 @@ public:
     static void bind(pybind11::module_& m, std::string name) {
         using clsTree = BinaryTreeAdapter<BinaryNodeType_>;
         auto tree = py::class_<clsTree>(m, name.c_str());
-        tree.def(py::init<bool>(), py::arg("threads") = 1, py::arg("pad_descriptors_if_required") = false);
+        tree.def(py::init<uint32_t, bool>(), py::arg("threads") = 1, py::arg("pad_descriptors_if_required") = false);
         tree.def("add", &clsTree::add, py::arg("image_id"), py::arg("descriptor_ids"), py::arg("descriptors"));
         tree.def("train", &clsTree::train, py::arg("mode") = srrg_hbst::SplittingStrategy::SplitEven);
         tree.def("match", &clsTree::match, py::arg("query_descriptor_ids"), py::arg("query_descriptors"), py::arg("max_distance") = 25, py::arg("lazy") = false);
@@ -131,6 +138,7 @@ public:
 
 private:
     bool padDescriptorsIfRequired;
+    Threadpool* threadpool;
 
 
     static Descriptor buildDescriptor(const u_char* descriptor) {

@@ -9,6 +9,6 @@ set(INCLUDE_ROOT include)
 
 include_directories(${INCLUDE_ROOT}/srrg_hbst)
 add_subdirectory(${INCLUDE_ROOT}/pybind11 pybind11)
-pybind11_add_module(hbst src/module.cpp)
+pybind11_add_module(hbst src/module.cpp src/threadpool.cpp)
 
 target_compile_definitions(hbst PRIVATE VERSION_INFO=${VERSION_INFO})
